@@ -9,6 +9,7 @@ from tkinter.messagebox import *
 import re
 import json
 import os.path
+from matplotlib.pyplot import get
 
 from pyparsing import col
 
@@ -111,12 +112,19 @@ def createRemWindow():
                 with open(db_path, 'r') as db_json:
                     db_data = json.load(db_json)
                 # TODO 데이터 유무 체크
-                match = next(db for db in db_data if db["name"] == entry_name.get())
-                print(match)
-                print(match.get("birth"))
-                match["state"] = 0
-                with open(db_path, 'w') as fs:
-                    json.dump(db_data, fs, indent=4)
+                # Check name is already in database
+                try:
+                    match = next(db for db in db_data if db["name"] == entry_name.get())
+                    if match.get("gender") == 1:
+                        genderString = "Male"
+                    else:
+                        genderString = "Female"
+                    if askyesno("Confirm", "Name: " + match.get("name") + "\nGender: " + genderString + "\nDate of Birth: " + match.get("birth") + "\n\nReally want to delete?"):
+                        match["state"] = 0
+                        with open(db_path, 'w') as fs:
+                            json.dump(db_data, fs, indent=4)
+                except:
+                    showerror("Data not exist", "Cannot find " + entry_name.get() + " in database.")
                 #print(entry_name.get() in db_data["Active"])
             else:
                 # DB file has missing
