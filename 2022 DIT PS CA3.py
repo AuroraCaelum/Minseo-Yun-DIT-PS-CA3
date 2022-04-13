@@ -3,6 +3,7 @@ from cgitb import text
 from dis import dis
 from importlib.resources import path
 from math import fabs
+from operator import itemgetter
 from tkinter import *
 from tkinter.messagebox import *
 import re
@@ -16,8 +17,9 @@ db_path = "./ms_database.json"
 # Check DB File exist
 if os.path.isfile(db_path) != True:
     datafile = {}
-    datafile["Active"] = []
-    datafile["Inactive"] = []
+    datafile = []
+    #datafile["Active"] = []
+    #datafile["Inactive"] = []
     with open(db_path, 'w') as fs:
         json.dump(datafile, fs, indent=4)
         showinfo("Initialize Complete", "Database Successfully Created")
@@ -64,11 +66,17 @@ def createRegWindow():
                     # TODO INACTIVE에 이름 있는지 확인 -> 있을경우 Active로 변경
                     with open(db_path, 'r') as db_json:
                         db_data = json.load(db_json)
-                    db_data["Active"].append({
+                    db_data.append({
                         "name": entry_name.get(),
                         "gender": radio_var.get(),
-                        "birth": entry_birth.get()
+                        "birth": entry_birth.get(),
+                        "state": 1
                     })
+                    #db_data["Active"].append({
+                    #    "name": entry_name.get(),
+                    #    "gender": radio_var.get(),
+                    #    "birth": entry_birth.get()
+                    #})
                     with open(db_path, 'w') as fs:
                         json.dump(db_data, fs, indent=4)
                         showinfo("Success", "Registeration Successful")
@@ -103,7 +111,12 @@ def createRemWindow():
                 with open(db_path, 'r') as db_json:
                     db_data = json.load(db_json)
                 # TODO 데이터 유무 체크
-                
+                match = next(db for db in db_data if db["name"] == entry_name.get())
+                print(match)
+                print(match.get("birth"))
+                match["state"] = 0
+                with open(db_path, 'w') as fs:
+                    json.dump(db_data, fs, indent=4)
                 #print(entry_name.get() in db_data["Active"])
             else:
                 # DB file has missing

@@ -1,10 +1,20 @@
-{
-    "Active": [
-        {
-            "name": "Minseo Yun",
-            "gender": 2,
-            "birth": "2002-02-20"
-        }
-    ],
-    "Inactive": []
-}
+[
+    {
+        "name": "asf",
+        "gender": 1,
+        "birth": "2003-02-01",
+        "state": 0
+    },
+    {
+        "name": "asdf",
+        "gender": 1,
+        "birth": "2002-02-01",
+        "state": 1
+    },
+    {
+        "name": "asdfg",
+        "gender": 1,
+        "birth": "2013-02-01",
+        "state": 0
+    }
+]
