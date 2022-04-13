@@ -1,20 +1,20 @@
 [
     {
-        "name": "asf",
-        "gender": 1,
-        "birth": "2003-02-01",
-        "state": 0
+        "name": "Minseo",
+        "gender": "Male",
+        "birth": "2002-03-01",
+        "state": 1,
+        "event": "1500m Freestyle",
+        "time": "1.03.98",
+        "meet": "2022 Bejing Olympic"
     },
     {
         "name": "asdf",
-        "gender": 1,
-        "birth": "2002-02-01",
-        "state": 1
-    },
-    {
-        "name": "asdfg",
-        "gender": 1,
-        "birth": "2013-02-01",
-        "state": 0
+        "gender": "Female",
+        "birth": "2002-03-04",
+        "state": 1,
+        "event": "",
+        "time": "",
+        "meet": ""
     }
 ]
