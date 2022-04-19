@@ -14,6 +14,7 @@ import re
 import json
 import os.path
 import time
+from unicodedata import name
 from matplotlib.pyplot import get
 from numpy import record
 
@@ -125,23 +126,7 @@ def createRegWindow():
                             with open(nameDB_path, 'w') as fs:
                                 json.dump(db_data, fs, indent=4)
                                 showinfo("Success", "Registeration Successful")
-                                #break
-                
-                        #match = next(db for db in db_data if db["name"] == entry_name.get())
-                        #if askyesno("Data Already Exist", "Name: " + match.get("name") + "\nis already exist in database, but not active.\n\nChange " + entry_name.get() + " to active?"):
-                        #    match["state"] = 1
-                        #    with open(nameDB_path, 'w') as fs:
-                        #        json.dump(db_data, fs, indent=4)
-                    #except:
-                        #db_data.append({
-                         #   "id": int(time.time()),
-                          #  "name": entry_name.get(),
-                           # "gender": radio_var.get(),
-                            #"birth": entry_birth.get(),
-                           # "state": 1
                             #TODO 선수 데이터베이스와 기록 데이터베이스 분리하기
-                            #TODO 선수 등록할때 아이디 배정
-                            #TODO 이름, 성별, 생일 모두 확인하고 중복이면 알림, 중복 아니면 새로운 아이디로 등록
                             #"event": "",
                             #"time": "",
                             #"meet": ""
@@ -294,6 +279,11 @@ def createRecWindow():
                 if os.path.isfile(nameDB_path):
                     with open(nameDB_path, 'r') as db_json:
                         db_data = json.load(db_json)
+                    i = 0
+                    while i < len(db_data):
+                        name = db_data[i]["name"]
+                        state = db_data[i]["state"]
+                        #TODO Record 작성 if ()
                     try:
                         #TODO Record에 append 하는걸로 수정
                         match = next(db for db in db_data if db["name"] == entry_name.get())
