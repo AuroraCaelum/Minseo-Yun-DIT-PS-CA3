@@ -1,5 +1,7 @@
+from ast import dump
 from cProfile import label
 from cgitb import text
+from dbm import dumb
 from dis import dis
 from glob import glob
 from hashlib import new
@@ -11,21 +13,36 @@ from tkinter.messagebox import *
 import re
 import json
 import os.path
+import time
 from matplotlib.pyplot import get
+from numpy import record
 
 from pyparsing import col
 
-db_path = "./ms_database.json"
+nameDB_path = "./name_database.json"
+recordDB_path = "./record_database.json"
 
 # Check DB File exist
-if os.path.isfile(db_path) != True:
+if os.path.isfile(nameDB_path) != True and os.path.isfile(recordDB_path) != True:
     datafile = {}
     datafile = []
-    #datafile["Active"] = []
-    #datafile["Inactive"] = []
-    with open(db_path, 'w') as fs:
+    with open(nameDB_path, 'w') as nfs:
+        json.dump(datafile, nfs, indent=4)
+        with open(recordDB_path, 'w') as rfs:
+            json.dump(datafile, rfs, indent=4)
+            showinfo("Initialize Complete", "Database Successfully Created")
+elif os.path.isfile(nameDB_path) != True:
+    datafile = {}
+    datafile = []
+    with open(nameDB_path, 'w') as fs:
         json.dump(datafile, fs, indent=4)
-        showinfo("Initialize Complete", "Database Successfully Created")
+        showinfo("Missing Swimmer Database", "Swimmer Database has Re-created")
+elif os.path.isfile(recordDB_path) != True:
+    datafile = {}
+    datafile = []
+    with open(recordDB_path, 'w') as fs:
+        json.dump(datafile, fs, indent=4)
+        showinfo("Missing Swimmer Database", "Record Database hs Re-created")
 
 def createRegWindow():
     global newRegWindow
@@ -69,34 +86,74 @@ def createRegWindow():
             # Validate Birth Data
             if (str(regexMatch) != 'None'):
                 # Validate File Existence
-                if os.path.isfile(db_path):
+                if os.path.isfile(nameDB_path):
                     # TODO INACTIVE에 이름 있는지 확인 -> 있을경우 Active로 변경
-                    with open(db_path, 'r') as db_json:
+                    with open(nameDB_path, 'r') as db_json:
                         db_data = json.load(db_json)
-                    try:
-                        match = next(db for db in db_data if db["name"] == entry_name.get())
-                        if askyesno("Data Already Exist", "Name: " + match.get("name") + "\nis already exist in database, but not active.\n\nChange " + entry_name.get() + " to active?"):
-                            match["state"] = 1
-                            with open(db_path, 'w') as fs:
+                    #try:
+                        i=0
+                        check = None
+                        while i < len(db_data):
+                            name = db_data[i]["name"]
+                            gender = db_data[i]["gender"]
+                            birth = db_data[i]["birth"]
+                            i+=1
+                            if name == entry_name.get() and gender == radio_var.get() and birth == entry_birth.get():
+                                #gender = db_data[i]["gender"]
+                                #birth = db_data[i]["birth"]
+                                #if gender == radio_var.get() and birth == entry_birth.get():
+                                if askyesno("Data Already Exist", "Name: " + name + "\nis already exist in database, but not active.\n\nChange " + entry_name.get() + " to active?"):
+                                    db_data[i-1]["state"] = 1
+                                    with open(nameDB_path, 'w') as fs:
+                                        json.dump(db_data, fs, indent=4)
+                                    check = True
+                                    break
+                                else:
+                                    check = True
+                                    break
+                            else: continue
+                        print(i)
+                        print(len(db_data))
+                        if i == len(db_data) and check != True:
+                            db_data.append({
+                                "id": int(time.time()),
+                                "name": entry_name.get(),
+                                "gender": radio_var.get(),
+                                "birth": entry_birth.get(),
+                                "state": 1
+                            })
+                            with open(nameDB_path, 'w') as fs:
                                 json.dump(db_data, fs, indent=4)
-                    except:
-                        db_data.append({
-                            "name": entry_name.get(),
-                            "gender": radio_var.get(),
-                            "birth": entry_birth.get(),
-                            "state": 1,
-                            "event": "",
-                            "time": "",
-                            "meet": ""
-                        })
+                                showinfo("Success", "Registeration Successful")
+                                #break
+                
+                        #match = next(db for db in db_data if db["name"] == entry_name.get())
+                        #if askyesno("Data Already Exist", "Name: " + match.get("name") + "\nis already exist in database, but not active.\n\nChange " + entry_name.get() + " to active?"):
+                        #    match["state"] = 1
+                        #    with open(nameDB_path, 'w') as fs:
+                        #        json.dump(db_data, fs, indent=4)
+                    #except:
+                        #db_data.append({
+                         #   "id": int(time.time()),
+                          #  "name": entry_name.get(),
+                           # "gender": radio_var.get(),
+                            #"birth": entry_birth.get(),
+                           # "state": 1
+                            #TODO 선수 데이터베이스와 기록 데이터베이스 분리하기
+                            #TODO 선수 등록할때 아이디 배정
+                            #TODO 이름, 성별, 생일 모두 확인하고 중복이면 알림, 중복 아니면 새로운 아이디로 등록
+                            #"event": "",
+                            #"time": "",
+                            #"meet": ""
+                       # })
                         #db_data["Active"].append({
                         #    "name": entry_name.get(),
                         #    "gender": radio_var.get(),
                         #    "birth": entry_birth.get()
                         #})
-                        with open(db_path, 'w') as fs:
-                            json.dump(db_data, fs, indent=4)
-                            showinfo("Success", "Registeration Successful")
+                       # with open(nameDB_path, 'w') as fs:
+                        #    json.dump(db_data, fs, indent=4)
+                         #   showinfo("Success", "Registeration Successful")
                 else:
                     # DB file has missing
                     showerror("Missing DB File", "Cannot find DB file. Please restart the program.")
@@ -124,8 +181,8 @@ def createRemWindow():
 
     def removeSwimmer(event):
         if (entry_name.get() != ""):
-            if os.path.isfile(db_path):
-                with open(db_path, 'r') as db_json:
+            if os.path.isfile(nameDB_path):
+                with open(nameDB_path, 'r') as db_json:
                     db_data = json.load(db_json)
                 # TODO 데이터 유무 체크
                 # Check name is already in database
@@ -133,7 +190,7 @@ def createRemWindow():
                     match = next(db for db in db_data if db["name"] == entry_name.get())
                     if askyesno("Confirm", "Name: " + match.get("name") + "\nGender: " + match.get("gender") + "\nDate of Birth: " + match.get("birth") + "\n\nReally want to delete?"):
                         match["state"] = 0
-                        with open(db_path, 'w') as fs:
+                        with open(nameDB_path, 'w') as fs:
                             json.dump(db_data, fs, indent=4)
                 except:
                     showerror("Data not exist", "Cannot find " + entry_name.get() + " in database.")
@@ -234,16 +291,17 @@ def createRecWindow():
             regexMatch = regex.match(entry_time.get())
             # Validate Time Format
             if (str(regexMatch) != 'None'):
-                if os.path.isfile(db_path):
-                    with open(db_path, 'r') as db_json:
+                if os.path.isfile(nameDB_path):
+                    with open(nameDB_path, 'r') as db_json:
                         db_data = json.load(db_json)
                     try:
+                        #TODO Record에 append 하는걸로 수정
                         match = next(db for db in db_data if db["name"] == entry_name.get())
                         if askyesno("Final Check", "Record this data?\nName: " + entry_name.get() + "\nEvent: " + radio_var.get() + "\nTime: " + entry_time.get() + "\nMeet: " + entry_meet.get()):
                             match["event"] = radio_var.get()
                             match["time"] = entry_time.get()
                             match["meet"] = entry_meet.get()
-                            with open(db_path, 'w') as fs:
+                            with open(nameDB_path, 'w') as fs:
                                 json.dump(db_data, fs, indent=4)
                                 showinfo("Success", "Successfully Recorded")
                     except:

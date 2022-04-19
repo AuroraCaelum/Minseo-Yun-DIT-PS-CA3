@@ -12,7 +12,7 @@
         "name": "asdf",
         "gender": "Female",
         "birth": "2002-03-04",
-        "state": 1,
+        "state": 0,
         "event": "",
         "time": "",
         "meet": ""
