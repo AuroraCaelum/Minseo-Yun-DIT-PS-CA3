@@ -4,7 +4,8 @@
         "name": "SSA",
         "event": "100m Breaststroke",
         "time": "1.23.45",
-        "meet": "Meet Test Meet"
+        "meet": "Meet Test Meet",
+        "status": "Posted"
     },
     {
         "id": 1650343866,

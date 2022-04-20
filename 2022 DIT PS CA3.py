@@ -1,6 +1,7 @@
 from ast import dump
 from cProfile import label
 from cgitb import text
+from datetime import datetime
 from dbm import dumb
 from dis import dis
 from glob import glob
@@ -17,13 +18,16 @@ import os.path
 import time
 from unicodedata import name
 from matplotlib.pyplot import get, show
-from numpy import append, record
+from numpy import append, rec, record
+from datetime import date
 
 from pyparsing import col
 
 nameDB_path = "./name_database.json"
 recordDB_path = "./record_database.json"
 
+#TODO os.path.isfile이나 fs:같이 자주 쓰는거 사전 정의해보기
+#TODO 동명이인 검증
 # Check DB File exist
 if os.path.isfile(nameDB_path) != True and os.path.isfile(recordDB_path) != True:
     datafile = {}
@@ -373,7 +377,7 @@ def createEnqWindow():
                         name = db_data[i]["name"]
                         state = db_data[i]["state"]
                         if name == entry_name.get():
-                            if state == 1:
+                            #if state == 1:
                                 dbpos = i
                         i+=1
                     if dbpos != None: #TODO pos 중복 확인
@@ -417,13 +421,74 @@ def createEnqWindow():
 
     btn_search.bind("<1>", enqSearch)
 
+def createDispWindow():
+    global newDispWindow
+    newDispWindow = Toplevel(app)
+    label_disp = Label(newDispWindow, text="Display Unposted Data for Submission")
+    tree_view = ttk.Treeview(newDispWindow, columns=["Name", "Gender", "Event", "Time", "Meet", "Age"], displaycolumns=["Name", "Gender", "Event", "Time", "Meet", "Age"])
+    btn_post = Button(newDispWindow, text="Continue to Post")
+    
+    label_disp.grid(row=1, column=3)
+    tree_view.grid(row=2, column=0, columnspan=5)
+    btn_post.grid(row=3, column=4)
+    
+    tree_view.column("#0", width=50)
+    tree_view.heading("#0", text="#")
+    tree_view.column("#1", width=150)
+    tree_view.heading("#1", text="Name")
+    tree_view.column("#2", width=80)
+    tree_view.heading("#2", text="Gender")
+    tree_view.column("#3", width=120)
+    tree_view.heading("#3", text="Event")
+    tree_view.column("#4", width=120)
+    tree_view.heading("#4", text="Timing")
+    tree_view.column("#5", width=150)
+    tree_view.heading("#5", text="Meet")
+    tree_view.column("#6", width=50)
+    tree_view.heading("#6", text="Age")
+
+    if os.path.isfile(nameDB_path):
+        with open(nameDB_path, 'r') as db_json:
+            db_data = json.load(db_json)
+        if os.path.isfile(recordDB_path):
+            with open(recordDB_path, 'r') as recDB_json:
+                recDB_data = json.load(recDB_json)
+            num = 1
+            for i in range(len(db_data)):
+                if db_data[i]["state"] == 1:
+                    name = db_data[i]["name"]
+                    gender = db_data[i]["gender"]
+                    today = date.today()
+                    birth = datetime.strptime(db_data[i]["birth"], '%Y-%m-%d')
+                    age = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
+                    for j in range(len(recDB_data)):
+                        if recDB_data[j]["name"] == name and recDB_data[j]["status"] == "Unposted":
+                            event = recDB_data[j]["event"]
+                            timing = recDB_data[j]["event"]
+                            meet = recDB_data[j]["meet"]
+                            tree_view.insert('', 'end', text=num, values=[name, gender, event, timing, meet, age], iid=str(num))
+                            num+=1
+                            #TODO else 처리
+
+    def postData(event):
+        with open(recordDB_path, 'r') as post_json:
+            post_data = json.load(post_json)
+        if askyesno("Confirm to Post?", "Continue posting this data?"):
+            for i in range(len(post_data)):
+                if post_data[i]["status"] == "Unposted":
+                    post_data[i]["status"] = "Posted"
+                    with open(recordDB_path, 'w') as fs:
+                        json.dump(post_data, fs, indent=4)
+                        tree_view.delete(*tree_view.get_children())
+
+    btn_post.bind("<1>", postData)
 
 app = Tk()
 regWindow = Button(app, text='Register Swimmer', command=createRegWindow)
 remWindow = Button(app, text='Remove Swimmer', command=createRemWindow)
 recWindow = Button(app, text='Record Swimmer\'s Timings', command=createRecWindow)
 enqWindow = Button(app, text='Enquire Swimmer\'s Timings', command=createEnqWindow)
-dispWindow = Button(app, text='Display Swimmer\'s Timings for Submission')
+dispWindow = Button(app, text='Display Swimmer\'s Timings for Submission', command=createDispWindow)
 
 regWindow.grid(row=1, column=0)
 remWindow.grid(row=1, column=2)
