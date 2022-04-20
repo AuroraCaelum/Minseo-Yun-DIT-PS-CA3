@@ -10,13 +10,14 @@ from math import fabs
 from operator import itemgetter
 from tkinter import *
 from tkinter.messagebox import *
+from tkinter import ttk
 import re
 import json
 import os.path
 import time
 from unicodedata import name
 from matplotlib.pyplot import get
-from numpy import record
+from numpy import append, record
 
 from pyparsing import col
 
@@ -279,23 +280,38 @@ def createRecWindow():
                 if os.path.isfile(nameDB_path):
                     with open(nameDB_path, 'r') as db_json:
                         db_data = json.load(db_json)
-                    i = 0
-                    while i < len(db_data):
-                        name = db_data[i]["name"]
-                        state = db_data[i]["state"]
-                        #TODO Record 작성 if ()
-                    try:
-                        #TODO Record에 append 하는걸로 수정
-                        match = next(db for db in db_data if db["name"] == entry_name.get())
-                        if askyesno("Final Check", "Record this data?\nName: " + entry_name.get() + "\nEvent: " + radio_var.get() + "\nTime: " + entry_time.get() + "\nMeet: " + entry_meet.get()):
-                            match["event"] = radio_var.get()
-                            match["time"] = entry_time.get()
-                            match["meet"] = entry_meet.get()
-                            with open(nameDB_path, 'w') as fs:
-                                json.dump(db_data, fs, indent=4)
-                                showinfo("Success", "Successfully Recorded")
-                    except:
-                        showerror("No Swimmer Data", "Name " + entry_name.get() + " is not in database.\nRegister swimmer first.")
+                    if os.path.isfile(recordDB_path):
+                        with open(recordDB_path, 'r') as recDB_json:
+                            recDB_data = json.load(recDB_json)
+                        i = 0
+                        dbpos = None
+                        while i < len(db_data):
+                            name = db_data[i]["name"]
+                            state = db_data[i]["state"]
+                            if name == entry_name.get():
+                                if state == 1:
+                                    dbpos = i
+                            i+=1
+                        if dbpos != None: #TODO pos가 여러개면 다른정보 확인하는 기능?
+                            if askyesno("Final Check", "Record this data?\nName: " + entry_name.get() + "\nEvent: " + radio_var.get() + "\nTime: " + entry_time.get() + "\nMeet: " + entry_meet.get()):
+                                id = db_data[dbpos]["id"]
+                                recDB_data.append({
+                                    "id": int(id),
+                                    "name": entry_name.get(),
+                                    "event": radio_var.get(),
+                                    "time": entry_time.get(),
+                                    "meet": entry_meet.get(),
+                                    "status": "Unposted"
+                                })
+                                with open(recordDB_path, 'w') as fs:
+                                    json.dump(recDB_data, fs, indent=4)
+                                    showinfo("Success", "Successfully Recorded")
+                        else:
+                            showerror("Cannot find such data", "Please check " + entry_name.get() + " is registered and currently active.")
+                    else:
+                        showerror("Database Missing", "Please restart the program")
+                else:
+                    showerror("Database Missing", "Please restart the program")
             else:
                 # Invalid birth data
                 showerror("Error", "There\'s an error in time input.\nInvalid value or incorrect input format.\n(e.g. 1.03.56)")
@@ -308,11 +324,97 @@ def createRecWindow():
 
     button_record.bind("<1>", recordData)
 
+def createEnqWindow():
+    global newEnqWindow
+    newEnqWindow = Toplevel(app)
+    label_req = Label(newEnqWindow, text="Enquire Swimmer\'s Timings")
+    label_name = Label(newEnqWindow, text="*Name")
+    entry_name = Entry(newEnqWindow)
+    label_event = Label(newEnqWindow, text="Event (Optional Filter)")
+    combo_event = ttk.Combobox(newEnqWindow, values=["50m Freestyle", "100m Freestyle", "200m Freestyle", "400m Freestyle", "800m Freestyle", "1500m Freestyle",
+                                                "50m Backstroke", "100m Backstroke", "200m Backstroke",
+                                                "50m Breaststroke", "100m Breaststroke", "200m Breaststroke",
+                                                "50m Butterfly", "100m Butterfly", "200m Butterfly",
+                                                "100m Individual Medley", "200m Individual Medley", "400m Individual Medley"])
+    btn_search = Button(newEnqWindow, text="Search")
+    tree_view = ttk.Treeview(newEnqWindow, columns=["Name", "Event", "Timing", "Meet"], displaycolumns=["Name", "Event", "Timing", "Meet"])
+
+    label_req.grid(row=1, column=2)
+    label_name.grid(row=2, column=0)
+    entry_name.grid(row=2, column=1)
+    label_event.grid(row=2, column=2)
+    combo_event.grid(row=2, column=3)
+    btn_search.grid(row=2, column=4)
+    tree_view.grid(row=3, column=0, columnspan=5)
+
+    tree_view.column("#0", width=50)
+    tree_view.heading("#0", text="#")
+    tree_view.column("#1", width=100)
+    tree_view.heading("#1", text="Name")
+    tree_view.column("#2", width=170)
+    tree_view.heading("#2", text="Event")
+    tree_view.column("#3", width=100)
+    tree_view.heading("#3", text="Timing")
+    tree_view.column("#4", width=250)
+    tree_view.heading("#4", text="Meet")
+
+    def enqSearch(event):
+        if (entry_name.get() != ""):
+            if os.path.isfile(nameDB_path):
+                with open(nameDB_path, 'r') as db_json:
+                    db_data = json.load(db_json)
+                if os.path.isfile(recordDB_path):
+                    with open(recordDB_path, 'r') as recDB_json:
+                        recDB_data = json.load(recDB_json)
+                    i=0
+                    dbpos = None
+                    #TODO for i in db_data 해보자
+                    while i < len(db_data):
+                        name = db_data[i]["name"]
+                        state = db_data[i]["state"]
+                        if name == entry_name.get():
+                            if state == 1:
+                                dbpos = i
+                        i+=1
+                    if dbpos != None: #TODO pos 중복 확인
+                        tree_view.delete(*tree_view.get_children())
+                        id = db_data[dbpos]["id"]
+                        j = 0
+                        num = 1
+                        
+                        def insertTree(j):
+                            rec_name = recDB_data[j]["name"]
+                            event = recDB_data[j]["event"]
+                            timing = recDB_data[j]["time"]
+                            meet = recDB_data[j]["meet"]
+                            tree_view.insert('', 'end', text=num, values=[rec_name, event, timing, meet], iid=str(num))
+                                    
+                        while j < len(recDB_data):
+                            if recDB_data[j]["id"] == id:
+                                if combo_event.get() != "":
+                                    if recDB_data[j]["event"] == combo_event.get():
+                                        insertTree(j)
+                                        num+=1
+                                        j+=1
+                                    else:
+                                        j+=1
+                                        continue
+                                else:
+                                    insertTree(j)
+                                    num+=1
+                                    j+=1
+                            else:
+                                j+=1
+                                continue
+
+    btn_search.bind("<1>", enqSearch)
+
+
 app = Tk()
 regWindow = Button(app, text='Register Swimmer', command=createRegWindow)
 remWindow = Button(app, text='Remove Swimmer', command=createRemWindow)
 recWindow = Button(app, text='Record Swimmer\'s Timings', command=createRecWindow)
-enqWindow = Button(app, text='Enquire Swimmer\'s Timings')
+enqWindow = Button(app, text='Enquire Swimmer\'s Timings', command=createEnqWindow)
 dispWindow = Button(app, text='Display Swimmer\'s Timings for Submission')
 
 regWindow.grid(row=1, column=0)
