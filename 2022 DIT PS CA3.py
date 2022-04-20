@@ -16,7 +16,7 @@ import json
 import os.path
 import time
 from unicodedata import name
-from matplotlib.pyplot import get
+from matplotlib.pyplot import get, show
 from numpy import append, record
 
 from pyparsing import col
@@ -309,9 +309,9 @@ def createRecWindow():
                         else:
                             showerror("Cannot find such data", "Please check " + entry_name.get() + " is registered and currently active.")
                     else:
-                        showerror("Database Missing", "Please restart the program")
+                        showerror("Database Missing", "Please restart the program!")
                 else:
-                    showerror("Database Missing", "Please restart the program")
+                    showerror("Database Missing", "Please restart the program!")
             else:
                 # Invalid birth data
                 showerror("Error", "There\'s an error in time input.\nInvalid value or incorrect input format.\n(e.g. 1.03.56)")
@@ -381,7 +381,7 @@ def createEnqWindow():
                         id = db_data[dbpos]["id"]
                         j = 0
                         num = 1
-                        
+
                         def insertTree(j):
                             rec_name = recDB_data[j]["name"]
                             event = recDB_data[j]["event"]
@@ -406,6 +406,14 @@ def createEnqWindow():
                             else:
                                 j+=1
                                 continue
+                    else:
+                        showerror("Database Not Found", "No such name in database!")
+                else:
+                    showerror("Database Missing", "Please restart the program!")
+            else:
+                showerror("Database Missing", "Please restart the program")
+        else:
+            showerror("Error", "You must input the name!")
 
     btn_search.bind("<1>", enqSearch)
 
