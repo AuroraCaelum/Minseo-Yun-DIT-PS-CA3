@@ -109,7 +109,7 @@ def createRegWindow():
                                 #birth = db_data[i]["birth"]
                                 #if gender == radio_var.get() and birth == entry_birth.get():
                                 if askyesno("Data Already Exist", "Name: " + name + "\nis already exist in database, but not active.\n\nChange " + entry_name.get() + " to active?"):
-                                    db_data[i-1]["state"] = 1
+                                    db_data[i-1]["state"] = "Active"
                                     with open(nameDB_path, 'w') as fs:
                                         json.dump(db_data, fs, indent=4)
                                     check = True
@@ -126,7 +126,7 @@ def createRegWindow():
                                 "name": entry_name.get(),
                                 "gender": radio_var.get(),
                                 "birth": entry_birth.get(),
-                                "state": 1
+                                "state": "Active"
                             })
                             with open(nameDB_path, 'w') as fs:
                                 json.dump(db_data, fs, indent=4)
@@ -179,7 +179,7 @@ def createRemWindow():
                 try:
                     match = next(db for db in db_data if db["name"] == entry_name.get())
                     if askyesno("Confirm", "Name: " + match.get("name") + "\nGender: " + match.get("gender") + "\nDate of Birth: " + match.get("birth") + "\n\nReally want to delete?"):
-                        match["state"] = 0
+                        match["state"] = "Inactive"
                         with open(nameDB_path, 'w') as fs:
                             json.dump(db_data, fs, indent=4)
                 except:
@@ -293,7 +293,7 @@ def createRecWindow():
                             name = db_data[i]["name"]
                             state = db_data[i]["state"]
                             if name == entry_name.get():
-                                if state == 1:
+                                if state == "Active":
                                     dbpos = i
                             i+=1
                         if dbpos != None: #TODO pos가 여러개면 다른정보 확인하는 기능?
@@ -377,7 +377,7 @@ def createEnqWindow():
                         name = db_data[i]["name"]
                         state = db_data[i]["state"]
                         if name == entry_name.get():
-                            #if state == 1:
+                            #if state == "Active":
                                 dbpos = i
                         i+=1
                     if dbpos != None: #TODO pos 중복 확인
@@ -455,7 +455,7 @@ def createDispWindow():
                 recDB_data = json.load(recDB_json)
             num = 1
             for i in range(len(db_data)):
-                if db_data[i]["state"] == 1:
+                if db_data[i]["state"] == "Active":
                     name = db_data[i]["name"]
                     gender = db_data[i]["gender"]
                     today = date.today()

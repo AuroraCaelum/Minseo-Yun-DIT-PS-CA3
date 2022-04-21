@@ -4,62 +4,62 @@
         "name": "Minseo",
         "gender": "Male",
         "birth": "2003-02-07",
-        "state": 1
+        "state": "Active"
     },
     {
         "id": 1650343831,
         "name": "Python",
         "gender": "Male",
         "birth": "2008-10-31",
-        "state": 1
+        "state": "Active"
     },
     {
         "id": 1650343866,
         "name": "SSA",
         "gender": "Female",
         "birth": "2001-02-01",
-        "state": 1
+        "state": "Active"
     },
     {
         "id": 1650343888,
         "name": "Subway",
         "gender": "Female",
         "birth": "2006-12-15",
-        "state": 1
+        "state": "Active"
     },
     {
         "id": 1650343916,
         "name": "Samsung",
         "gender": "Male",
         "birth": "1950-06-12",
-        "state": 1
+        "state": "Active"
     },
     {
         "id": 1650344730,
         "name": "Apple",
         "gender": "Female",
         "birth": "1999-09-09",
-        "state": 1
+        "state": "Active"
     },
     {
         "id": 1650345301,
         "name": "Subway",
         "gender": "Male",
         "birth": "2006-12-15",
-        "state": 1
+        "state": "Active"
     },
     {
         "id": 1650346004,
         "name": "Loop",
         "gender": "Male",
         "birth": "2010-06-03",
-        "state": 1
+        "state": "Active"
     },
     {
         "id": 1650347093,
         "name": "Steve",
         "gender": "Male",
         "birth": "1963-11-02",
-        "state": 1
+        "state": "Active"
     }
 ]
