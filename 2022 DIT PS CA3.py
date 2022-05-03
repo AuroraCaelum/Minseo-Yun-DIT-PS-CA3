@@ -26,9 +26,8 @@ from pyparsing import col
 nameDB_path = "./name_database.json"
 recordDB_path = "./record_database.json"
 
-#TODO os.path.isfile이나 fs:같이 자주 쓰는거 사전 정의해보기
 #TODO 동명이인 검증
-# Check DB File exist
+# Check DB File existance
 if os.path.isfile(nameDB_path) != True and os.path.isfile(recordDB_path) != True:
     datafile = {}
     datafile = []
@@ -50,6 +49,7 @@ elif os.path.isfile(recordDB_path) != True:
         json.dump(datafile, fs, indent=4)
         showinfo("Missing Swimmer Database", "Record Database hs Re-created")
 
+#Create Registering Window
 def createRegWindow():
     global newRegWindow
     newRegWindow = Toplevel(app)
@@ -87,16 +87,15 @@ def createRegWindow():
 
     def inputSwimmerData(event):
         if (entry_name.get() != "" and radio_var.get() != 0):
+            # Validate input format
             regex = re.compile('^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$')
             regexMatch = regex.match(entry_birth.get())
             # Validate Birth Data
             if (str(regexMatch) != 'None'):
                 # Validate File Existence
                 if os.path.isfile(nameDB_path):
-                    # TODO INACTIVE에 이름 있는지 확인 -> 있을경우 Active로 변경
                     with open(nameDB_path, 'r') as db_json:
                         db_data = json.load(db_json)
-                    #try:
                         i=0
                         check = None
                         while i < len(db_data):
@@ -105,9 +104,6 @@ def createRegWindow():
                             birth = db_data[i]["birth"]
                             i+=1
                             if name == entry_name.get() and gender == radio_var.get() and birth == entry_birth.get():
-                                #gender = db_data[i]["gender"]
-                                #birth = db_data[i]["birth"]
-                                #if gender == radio_var.get() and birth == entry_birth.get():
                                 if askyesno("Data Already Exist", "Name: " + name + "\nis already exist in database, but not active.\n\nChange " + entry_name.get() + " to active?"):
                                     db_data[i-1]["state"] = "Active"
                                     with open(nameDB_path, 'w') as fs:
@@ -118,8 +114,6 @@ def createRegWindow():
                                     check = True
                                     break
                             else: continue
-                        print(i)
-                        print(len(db_data))
                         if i == len(db_data) and check != True:
                             db_data.append({
                                 "id": int(time.time()),
@@ -131,19 +125,6 @@ def createRegWindow():
                             with open(nameDB_path, 'w') as fs:
                                 json.dump(db_data, fs, indent=4)
                                 showinfo("Success", "Registeration Successful")
-                            #TODO 선수 데이터베이스와 기록 데이터베이스 분리하기
-                            #"event": "",
-                            #"time": "",
-                            #"meet": ""
-                       # })
-                        #db_data["Active"].append({
-                        #    "name": entry_name.get(),
-                        #    "gender": radio_var.get(),
-                        #    "birth": entry_birth.get()
-                        #})
-                       # with open(nameDB_path, 'w') as fs:
-                        #    json.dump(db_data, fs, indent=4)
-                         #   showinfo("Success", "Registeration Successful")
                 else:
                     # DB file has missing
                     showerror("Missing DB File", "Cannot find DB file. Please restart the program.")
@@ -174,7 +155,6 @@ def createRemWindow():
             if os.path.isfile(nameDB_path):
                 with open(nameDB_path, 'r') as db_json:
                     db_data = json.load(db_json)
-                # TODO 데이터 유무 체크
                 # Check name is already in database
                 try:
                     match = next(db for db in db_data if db["name"] == entry_name.get())
@@ -184,7 +164,6 @@ def createRemWindow():
                             json.dump(db_data, fs, indent=4)
                 except:
                     showerror("Data not exist", "Cannot find " + entry_name.get() + " in database.")
-                #print(entry_name.get() in db_data["Active"])
             else:
                 # DB file has missing
                 showerror("Missing DB File", "Cannot find DB File. Please restart the program.")
@@ -322,9 +301,6 @@ def createRecWindow():
         else:
             # Not completely inserted
             showerror("Error", "Some data is missing.\nPlease input all of the data.")
-        #else:
-            # Cannot find DB File
-        #    showerror("Error", "Cannot find DB file.")
 
     button_record.bind("<1>", recordData)
 
@@ -370,16 +346,17 @@ def createEnqWindow():
                 if os.path.isfile(recordDB_path):
                     with open(recordDB_path, 'r') as recDB_json:
                         recDB_data = json.load(recDB_json)
-                    i=0
+                    #i=0
                     dbpos = None
                     #TODO for i in db_data 해보자
-                    while i < len(db_data):
+                    #while i < len(db_data):
+                    for i in range(len(db_data)):
                         name = db_data[i]["name"]
                         state = db_data[i]["state"]
                         if name == entry_name.get():
                             #if state == "Active":
                                 dbpos = i
-                        i+=1
+                        #i+=1
                     if dbpos != None: #TODO pos 중복 확인
                         tree_view.delete(*tree_view.get_children())
                         id = db_data[dbpos]["id"]
@@ -392,23 +369,19 @@ def createEnqWindow():
                             timing = recDB_data[j]["time"]
                             meet = recDB_data[j]["meet"]
                             tree_view.insert('', 'end', text=num, values=[rec_name, event, timing, meet], iid=str(num))
-                                    
-                        while j < len(recDB_data):
+                        
+                        for j in range(len(recDB_data)):
                             if recDB_data[j]["id"] == id:
                                 if combo_event.get() != "":
                                     if recDB_data[j]["event"] == combo_event.get():
                                         insertTree(j)
-                                        num+=1
-                                        j+=1
+                                        num += 1
                                     else:
-                                        j+=1
                                         continue
                                 else:
                                     insertTree(j)
-                                    num+=1
-                                    j+=1
+                                    num += 1
                             else:
-                                j+=1
                                 continue
                     else:
                         showerror("Database Not Found", "No such name in database!")
@@ -464,11 +437,14 @@ def createDispWindow():
                     for j in range(len(recDB_data)):
                         if recDB_data[j]["name"] == name and recDB_data[j]["status"] == "Unposted":
                             event = recDB_data[j]["event"]
-                            timing = recDB_data[j]["event"]
+                            timing = recDB_data[j]["time"]
                             meet = recDB_data[j]["meet"]
                             tree_view.insert('', 'end', text=num, values=[name, gender, event, timing, meet, age], iid=str(num))
                             num+=1
-                            #TODO else 처리
+        else:
+            showerror("Database Missing", "Please restart the program.")
+    else:
+        showerror("Database Missing", "Please restart the program.")
 
     def postData(event):
         with open(recordDB_path, 'r') as post_json:
