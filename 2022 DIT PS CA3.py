@@ -1,3 +1,12 @@
+# -------------------------------------------------------------------
+# Env       -  Python 3.10.4 64-bit
+# Author    -  Yun Minseo
+# Github    -  https://github.com/dev-by-david/Minseo-Yun-DIT-PS-CA3
+# Disc      -  Individual Assignment for ITSD002 Problem Solving
+#              Singapore Institute of Management
+#              Diploma in Information Technology
+# -------------------------------------------------------------------
+
 from datetime import datetime
 from tkinter import *
 from tkinter.messagebox import *
@@ -8,11 +17,11 @@ import os.path
 import time
 from datetime import date
 
+# Define DB file path
 nameDB_path = "./name_database.json"
 recordDB_path = "./record_database.json"
 
-#TODO 동명이인 검증
-# Check DB File existance
+# Init - Check DB File existance
 if os.path.isfile(nameDB_path) != True and os.path.isfile(recordDB_path) != True:
     datafile = {}
     datafile = []
@@ -59,6 +68,7 @@ def createRegWindow():
     entry_birth.grid(row=4, column=2)
     btn_input.grid(row=5,column=1)
 
+    # Show input format hint
     entry_birth.insert(0, "YYYY-MM-DD")
     def deletePreInsert(event):
         if entry_birth.get() == "YYYY-MM-DD":
@@ -70,17 +80,20 @@ def createRegWindow():
     entry_birth.bind("<1>", deletePreInsert)
     entry_birth.bind("<FocusOut>", rewritePreInsert)
 
+    # Data input function
     def inputSwimmerData(event):
+        # Check null input
         if (entry_name.get() != "" and radio_var.get() != 0):
-            # Validate input format
+            # Validate input format (YYYY-MM-DD)
             regex = re.compile('^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$')
             regexMatch = regex.match(entry_birth.get())
-            # Validate Birth Data
             if (str(regexMatch) != 'None'):
-                # Validate File Existence
+                # Check DB Existence
                 if os.path.isfile(nameDB_path):
+                    # Load JSON
                     with open(nameDB_path, 'r') as db_json:
                         db_data = json.load(db_json)
+                        # Check swimmer is already exist
                         i=0
                         check = None
                         while i < len(db_data):
@@ -90,7 +103,9 @@ def createRegWindow():
                             i+=1
                             if name == entry_name.get() and gender == radio_var.get() and birth == entry_birth.get():
                                 if askyesno("Data Already Exist", "Name: " + name + "\nis already exist in database, but not active.\n\nChange " + entry_name.get() + " to active?"):
+                                    # Update state Inactive -> Active
                                     db_data[i-1]["state"] = "Active"
+                                    # Dump JSON
                                     with open(nameDB_path, 'w') as fs:
                                         json.dump(db_data, fs, indent=4)
                                     check = True
@@ -99,6 +114,7 @@ def createRegWindow():
                                     check = True
                                     break
                             else: continue
+                        # If swimmer is not already exist
                         if i == len(db_data) and check != True:
                             db_data.append({
                                 "id": int(time.time()),
@@ -107,6 +123,7 @@ def createRegWindow():
                                 "birth": entry_birth.get(),
                                 "state": "Active"
                             })
+                            # Dump JSON
                             with open(nameDB_path, 'w') as fs:
                                 json.dump(db_data, fs, indent=4)
                                 showinfo("Success", "Registeration Successful")
@@ -117,11 +134,12 @@ def createRegWindow():
                 # Invalid birth data
                 showerror("Error", "There\'s an error in date of birth input.\nInvalid value or incorrect input format.\n(YYYY-MM-DD)")
         else:
-            # Not completely inserted
+            # Null Input
             showerror("Error", "Some data is missing.\nPlease input all of the data.")
 
     btn_input.bind("<1>", inputSwimmerData)
 
+# Create Remove Window
 def createRemWindow():
     global newRemWindow
     newRemWindow = Toplevel(app)
@@ -135,41 +153,52 @@ def createRemWindow():
     entry_name.grid(row=2, column=2)
     btn_rem.grid(row=3, column=1)
 
+    # Remove swimmer data function
     def removeSwimmer(event):
+        # Check null input
         if (entry_name.get() != ""):
+            # Check DB Existance
             if os.path.isfile(nameDB_path):
+                # Load JSON
                 with open(nameDB_path, 'r') as db_json:
                     db_data = json.load(db_json)
-                # Check name is already in database
+                # Check name is in DB
                 try:
                     match = next(db for db in db_data if db["name"] == entry_name.get())
                     if askyesno("Confirm", "Name: " + match.get("name") + "\nGender: " + match.get("gender") + "\nDate of Birth: " + match.get("birth") + "\n\nReally want to delete?"):
+                        # Update state Active -> Inactive
                         match["state"] = "Inactive"
+                        # Dump JSON
                         with open(nameDB_path, 'w') as fs:
                             json.dump(db_data, fs, indent=4)
                 except:
+                    # No such name in DB
                     showerror("Data not exist", "Cannot find " + entry_name.get() + " in database.")
             else:
                 # DB file has missing
                 showerror("Missing DB File", "Cannot find DB File. Please restart the program.")
         else:
-            # Not Completely Inserted
+            # Null Input
             showerror("Error", "Please input name")
 
     btn_rem.bind("<1>", removeSwimmer)
 
+# Create Record Window
 def createRecWindow():
     global newRecWindow
     newRecWindow = Toplevel(app)
     label_rec = Label(newRecWindow, text = "Record Swimmer\'s Timings")
     label_name = Label(newRecWindow, text = "Name")
     entry_name = Entry(newRecWindow)
+
+    # RadioButton Set
     label_event = Label(newRecWindow, text = "Event")
     label_freestyle = Label(newRecWindow, text = "Freestyle")
     label_backstroke = Label(newRecWindow, text = "Backstroke")
     label_breaststroke = Label(newRecWindow, text = "Breaststroke")
     label_butterfly = Label(newRecWindow, text = "Butterfly")
     label_indiv = Label(newRecWindow, text = "Individual Medley")
+
     radio_var = StringVar()
     radio_free50 = Radiobutton(newRecWindow, text = "50m", variable=radio_var, value = "50m Freestyle")
     radio_free100 = Radiobutton(newRecWindow, text = "100m", variable=radio_var, value = "100m Freestyle")
@@ -189,6 +218,8 @@ def createRecWindow():
     radio_indiv100 = Radiobutton(newRecWindow, text = "100m", variable=radio_var, value = "100m Individual Medley")
     radio_indiv200 = Radiobutton(newRecWindow, text = "200m", variable=radio_var, value = "200m Individual Medley")
     radio_indiv400 = Radiobutton(newRecWindow, text = "400m", variable=radio_var, value = "400m Individual Medley")
+    
+    
     label_time = Label(newRecWindow, text = "Time")
     entry_time = Entry(newRecWindow)
     label_meet = Label(newRecWindow, text = "Meet")
@@ -228,6 +259,7 @@ def createRecWindow():
     entry_meet.grid(row=10, column=1)
     button_record.grid(row=11, column=4)
 
+    # Show input format hint
     entry_time.insert(0, "e.g., 1.03.56")
     def deletePreInsert(event):
         if entry_time.get() == "e.g., 1.03.56":
@@ -239,18 +271,23 @@ def createRecWindow():
     entry_time.bind("<1>", deletePreInsert)
     entry_time.bind("<FocusOut>", rewritePreInsert)
 
+    # DB recording function
     def recordData(event):
+        # Check null input
         if (entry_name.get() != "" and radio_var.get() != "" and entry_meet.get() != ""):
+            # Validate Time Format (0.00.00 ~ 9.59.99)
             regex = re.compile('([0-9])\.([0-5][0-9])\.([0-9][0-9])')
             regexMatch = regex.match(entry_time.get())
-            # Validate Time Format
             if (str(regexMatch) != 'None'):
+                # Load JSON (Name DB)
                 if os.path.isfile(nameDB_path):
                     with open(nameDB_path, 'r') as db_json:
                         db_data = json.load(db_json)
+                    # Load JSON (Record DB)
                     if os.path.isfile(recordDB_path):
                         with open(recordDB_path, 'r') as recDB_json:
                             recDB_data = json.load(recDB_json)
+                        # Search name in Name DB
                         i = 0
                         dbpos = None
                         while i < len(db_data):
@@ -260,7 +297,8 @@ def createRecWindow():
                                 if state == "Active":
                                     dbpos = i
                             i+=1
-                        if dbpos != None: #TODO pos가 여러개면 다른정보 확인하는 기능?
+                        # If swimmer registered
+                        if dbpos != None:
                             if askyesno("Final Check", "Record this data?\nName: " + entry_name.get() + "\nEvent: " + radio_var.get() + "\nTime: " + entry_time.get() + "\nMeet: " + entry_meet.get()):
                                 id = db_data[dbpos]["id"]
                                 recDB_data.append({
@@ -271,17 +309,21 @@ def createRecWindow():
                                     "meet": entry_meet.get(),
                                     "status": "Unposted"
                                 })
+                                # Dump JSON
                                 with open(recordDB_path, 'w') as fs:
                                     json.dump(recDB_data, fs, indent=4)
                                     showinfo("Success", "Successfully Recorded")
                         else:
+                            # Swimmer not registered
                             showerror("Cannot find such data", "Please check " + entry_name.get() + " is registered and currently active.")
                     else:
+                        # Cannot find DB
                         showerror("Database Missing", "Please restart the program!")
                 else:
+                    # Cannot find DB
                     showerror("Database Missing", "Please restart the program!")
             else:
-                # Invalid birth data
+                # Invalid birth input format
                 showerror("Error", "There\'s an error in time input.\nInvalid value or incorrect input format.\n(e.g. 1.03.56)")
         else:
             # Not completely inserted
@@ -289,6 +331,7 @@ def createRecWindow():
 
     button_record.bind("<1>", recordData)
 
+# Create Enquire Window
 def createEnqWindow():
     global newEnqWindow
     newEnqWindow = Toplevel(app)
@@ -312,6 +355,7 @@ def createEnqWindow():
     btn_search.grid(row=2, column=4)
     tree_view.grid(row=3, column=0, columnspan=5)
 
+    # TreeView Setting
     tree_view.column("#0", width=30)
     tree_view.heading("#0", text="#")
     tree_view.column("#1", width=100)
@@ -323,31 +367,33 @@ def createEnqWindow():
     tree_view.column("#4", width=300)
     tree_view.heading("#4", text="Meet")
 
+    # Search Function
     def enqSearch(event):
+        # Check null input
         if (entry_name.get() != ""):
+            # Load JSON (Name DB)
             if os.path.isfile(nameDB_path):
                 with open(nameDB_path, 'r') as db_json:
                     db_data = json.load(db_json)
+                # Load JSON (Record DB)
                 if os.path.isfile(recordDB_path):
                     with open(recordDB_path, 'r') as recDB_json:
                         recDB_data = json.load(recDB_json)
-                    #i=0
+                    # Find name in Name DB
                     dbpos = None
-                    #TODO for i in db_data 해보자
-                    #while i < len(db_data):
                     for i in range(len(db_data)):
                         name = db_data[i]["name"]
-                        #state = db_data[i]["state"]
                         if name == entry_name.get():
-                            #if state == "Active":
                                 dbpos = i
-                        #i+=1
-                    if dbpos != None: #TODO pos 중복 확인
+                    # If name registered
+                    if dbpos != None:
+                        # Initialize TreeView
                         tree_view.delete(*tree_view.get_children())
                         id = db_data[dbpos]["id"]
                         j = 0
                         num = 1
 
+                        # Insert data into TreeView
                         def insertTree(j):
                             rec_name = recDB_data[j]["name"]
                             event = recDB_data[j]["event"]
@@ -355,8 +401,10 @@ def createEnqWindow():
                             meet = recDB_data[j]["meet"]
                             tree_view.insert('', 'end', text=num, values=[rec_name, event, timing, meet], iid=str(num))
                         
+                        # Find recordings in Record DB (with name)
                         for j in range(len(recDB_data)):
                             if recDB_data[j]["id"] == id:
+                                # If optional search
                                 if combo_event.get() != "":
                                     if recDB_data[j]["event"] == combo_event.get():
                                         insertTree(j)
@@ -369,16 +417,21 @@ def createEnqWindow():
                             else:
                                 continue
                     else:
+                        # Swimmer not registered
                         showerror("Database Not Found", "No such name in database!")
                 else:
+                    # Cannot find DB
                     showerror("Database Missing", "Please restart the program!")
             else:
+                # Cannot find DB
                 showerror("Database Missing", "Please restart the program")
         else:
+            # Null Input
             showerror("Error", "You must input the name!")
 
     btn_search.bind("<1>", enqSearch)
 
+# Create Display Window
 def createDispWindow():
     global newDispWindow
     newDispWindow = Toplevel(app)
@@ -389,7 +442,8 @@ def createDispWindow():
     label_disp.grid(row=1, column=4)
     tree_view.grid(row=2, column=0, columnspan=7)
     btn_post.grid(row=3, column=4)
-    
+
+    # TreeView Setting
     tree_view.column("#0", width=30)
     tree_view.heading("#0", text="#")
     tree_view.column("#1", width=150)
@@ -405,20 +459,25 @@ def createDispWindow():
     tree_view.column("#6", width=50)
     tree_view.heading("#6", text="Age")
 
+    # Load JSON (Name DB)
     if os.path.isfile(nameDB_path):
         with open(nameDB_path, 'r') as db_json:
             db_data = json.load(db_json)
+        # Load JSON (Record DB)
         if os.path.isfile(recordDB_path):
             with open(recordDB_path, 'r') as recDB_json:
                 recDB_data = json.load(recDB_json)
+            # Search Active Swimmer
             num = 1
             for i in range(len(db_data)):
                 if db_data[i]["state"] == "Active":
                     name = db_data[i]["name"]
                     gender = db_data[i]["gender"]
+                    # Calculate Age
                     today = date.today()
                     birth = datetime.strptime(db_data[i]["birth"], '%Y-%m-%d')
                     age = today.year - birth.year - ((today.month, today.day) < (birth.month, birth.day))
+                    # Search Unposted Data and Display (with name)
                     for j in range(len(recDB_data)):
                         if recDB_data[j]["name"] == name and recDB_data[j]["status"] == "Unposted":
                             event = recDB_data[j]["event"]
@@ -426,24 +485,33 @@ def createDispWindow():
                             meet = recDB_data[j]["meet"]
                             tree_view.insert('', 'end', text=num, values=[name, gender, event, timing, meet, age], iid=str(num))
                             num+=1
+            # Loop until find all
         else:
+            # Cannot find DB
             showerror("Database Missing", "Please restart the program.")
     else:
+        # Cannot find DB
         showerror("Database Missing", "Please restart the program.")
 
+    # Post DB (Update to 'Posted')
     def postData(event):
+        # Load JSON (Record DB)
         with open(recordDB_path, 'r') as post_json:
             post_data = json.load(post_json)
+        # Update status Unposted -> Posted
         if askyesno("Confirm to Post?", "Continue posting this data?"):
             for i in range(len(post_data)):
                 if post_data[i]["status"] == "Unposted":
                     post_data[i]["status"] = "Posted"
+                    # Dump JSON
                     with open(recordDB_path, 'w') as fs:
                         json.dump(post_data, fs, indent=4)
+                        # Initialize TreeView
                         tree_view.delete(*tree_view.get_children())
 
     btn_post.bind("<1>", postData)
 
+# Tkinter Main Page
 app = Tk()
 regWindow = Button(app, text='Register Swimmer', command=createRegWindow)
 remWindow = Button(app, text='Remove Swimmer', command=createRemWindow)
