@@ -1,14 +1,4 @@
-from ast import dump
-from cProfile import label
-from cgitb import text
 from datetime import datetime
-from dbm import dumb
-from dis import dis
-from glob import glob
-from hashlib import new
-from importlib.resources import path
-from math import fabs
-from operator import itemgetter
 from tkinter import *
 from tkinter.messagebox import *
 from tkinter import ttk
@@ -16,12 +6,7 @@ import re
 import json
 import os.path
 import time
-from unicodedata import name
-from matplotlib.pyplot import get, show
-from numpy import append, rec, record
 from datetime import date
-
-from pyparsing import col
 
 nameDB_path = "./name_database.json"
 recordDB_path = "./record_database.json"
@@ -132,8 +117,8 @@ def createRegWindow():
                 # Invalid birth data
                 showerror("Error", "There\'s an error in date of birth input.\nInvalid value or incorrect input format.\n(YYYY-MM-DD)")
         else:
-                # Not completely inserted
-                showerror("Error", "Some data is missing.\nPlease input all of the data.")
+            # Not completely inserted
+            showerror("Error", "Some data is missing.\nPlease input all of the data.")
 
     btn_input.bind("<1>", inputSwimmerData)
 
@@ -327,15 +312,15 @@ def createEnqWindow():
     btn_search.grid(row=2, column=4)
     tree_view.grid(row=3, column=0, columnspan=5)
 
-    tree_view.column("#0", width=50)
+    tree_view.column("#0", width=30)
     tree_view.heading("#0", text="#")
     tree_view.column("#1", width=100)
     tree_view.heading("#1", text="Name")
     tree_view.column("#2", width=170)
     tree_view.heading("#2", text="Event")
-    tree_view.column("#3", width=100)
+    tree_view.column("#3", width=90)
     tree_view.heading("#3", text="Timing")
-    tree_view.column("#4", width=250)
+    tree_view.column("#4", width=300)
     tree_view.heading("#4", text="Meet")
 
     def enqSearch(event):
@@ -352,7 +337,7 @@ def createEnqWindow():
                     #while i < len(db_data):
                     for i in range(len(db_data)):
                         name = db_data[i]["name"]
-                        state = db_data[i]["state"]
+                        #state = db_data[i]["state"]
                         if name == entry_name.get():
                             #if state == "Active":
                                 dbpos = i
@@ -401,11 +386,11 @@ def createDispWindow():
     tree_view = ttk.Treeview(newDispWindow, columns=["Name", "Gender", "Event", "Time", "Meet", "Age"], displaycolumns=["Name", "Gender", "Event", "Time", "Meet", "Age"])
     btn_post = Button(newDispWindow, text="Continue to Post")
     
-    label_disp.grid(row=1, column=3)
-    tree_view.grid(row=2, column=0, columnspan=5)
+    label_disp.grid(row=1, column=4)
+    tree_view.grid(row=2, column=0, columnspan=7)
     btn_post.grid(row=3, column=4)
     
-    tree_view.column("#0", width=50)
+    tree_view.column("#0", width=30)
     tree_view.heading("#0", text="#")
     tree_view.column("#1", width=150)
     tree_view.heading("#1", text="Name")
