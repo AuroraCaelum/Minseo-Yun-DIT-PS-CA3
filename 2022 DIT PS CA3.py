@@ -102,7 +102,7 @@ def createRegWindow():
                             gender = db_data[i]["gender"]
                             birth = db_data[i]["birth"]
                             i+=1
-                            if name == entry_name.get() and gender == radio_var.get() and birth == entry_birth.get():
+                            if name.upper() == entry_name.get().upper() and gender == radio_var.get() and birth == entry_birth.get():
                                 if db_data[i-1]["state"] == "Inactive":
                                     if askyesno("Data Already Exist", "Name: " + name + "\nis already exist in database, but not active.\n\nChange " + entry_name.get() + " to active?"):
                                         # Update state Inactive -> Active
@@ -170,7 +170,7 @@ def createRemWindow():
                     db_data = json.load(db_json)
                 # Check name is in DB
                 try:
-                    match = next(db for db in db_data if db["name"] == entry_name.get())
+                    match = next(db for db in db_data if db["name"].upper() == entry_name.get().upper())
                     if askyesno("Confirm", "Name: " + match.get("name") + "\nGender: " + match.get("gender") + "\nDate of Birth: " + match.get("birth") + "\n\nReally want to delete?"):
                         # Update state Active -> Inactive
                         match["state"] = "Inactive"
