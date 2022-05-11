@@ -8,6 +8,8 @@
 # -------------------------------------------------------------------
 
 from datetime import datetime
+from datetime import date
+from this import d
 from tkinter import *
 from tkinter.messagebox import *
 from tkinter import ttk
@@ -15,7 +17,6 @@ import re
 import json
 import os.path
 import time
-from datetime import date
 
 # Define DB file path
 nameDB_path = "./name_database.json"
@@ -102,17 +103,21 @@ def createRegWindow():
                             birth = db_data[i]["birth"]
                             i+=1
                             if name == entry_name.get() and gender == radio_var.get() and birth == entry_birth.get():
-                                if askyesno("Data Already Exist", "Name: " + name + "\nis already exist in database, but not active.\n\nChange " + entry_name.get() + " to active?"):
-                                    # Update state Inactive -> Active
-                                    db_data[i-1]["state"] = "Active"
-                                    # Dump JSON
-                                    with open(nameDB_path, 'w') as fs:
-                                        json.dump(db_data, fs, indent=4)
-                                    check = True
-                                    break
+                                if db_data[i-1]["state"] == "Inactive":
+                                    if askyesno("Data Already Exist", "Name: " + name + "\nis already exist in database, but not active.\n\nChange " + entry_name.get() + " to active?"):
+                                        # Update state Inactive -> Active
+                                        db_data[i-1]["state"] = "Active"
+                                        # Dump JSON
+                                        with open(nameDB_path, 'w') as fs:
+                                            json.dump(db_data, fs, indent=4)
+                                        check = True
+                                        break
+                                    else:
+                                        check = True
+                                        break
                                 else:
+                                    showerror("Data Already Exist", "Name: " + name + "\n is already exist in database and active.")
                                     check = True
-                                    break
                             else: continue
                         # If swimmer is not already exist
                         if i == len(db_data) and check != True:
@@ -126,7 +131,7 @@ def createRegWindow():
                             # Dump JSON
                             with open(nameDB_path, 'w') as fs:
                                 json.dump(db_data, fs, indent=4)
-                                showinfo("Success", "Registeration Successful")
+                                showinfo("Success", "Registration Successful")
                 else:
                     # DB file has missing
                     showerror("Missing DB File", "Cannot find DB file. Please restart the program.")
@@ -138,6 +143,7 @@ def createRegWindow():
             showerror("Error", "Some data is missing.\nPlease input all of the data.")
 
     btn_input.bind("<1>", inputSwimmerData)
+    entry_birth.bind("<Return>", inputSwimmerData)
 
 # Create Remove Window
 def createRemWindow():
@@ -182,6 +188,7 @@ def createRemWindow():
             showerror("Error", "Please input name")
 
     btn_rem.bind("<1>", removeSwimmer)
+    entry_name.bind("<Return>", removeSwimmer)
 
 # Create Record Window
 def createRecWindow():
@@ -256,7 +263,7 @@ def createRecWindow():
     label_time.grid(row=9, column=0)
     entry_time.grid(row=9, column=1)
     label_meet.grid(row=10, column=0)
-    entry_meet.grid(row=10, column=1)
+    entry_meet.grid(row=10, column=1, columnspan=3, ipadx=65)
     button_record.grid(row=11, column=4)
 
     # Show input format hint
@@ -330,6 +337,7 @@ def createRecWindow():
             showerror("Error", "Some data is missing.\nPlease input all of the data.")
 
     button_record.bind("<1>", recordData)
+    entry_meet.bind("<Return>", recordData)
 
 # Create Enquire Window
 def createEnqWindow():
@@ -339,13 +347,14 @@ def createEnqWindow():
     label_name = Label(newEnqWindow, text="*Name")
     entry_name = Entry(newEnqWindow)
     label_event = Label(newEnqWindow, text="Event (Optional Filter)")
-    combo_event = ttk.Combobox(newEnqWindow, values=["50m Freestyle", "100m Freestyle", "200m Freestyle", "400m Freestyle", "800m Freestyle", "1500m Freestyle",
+    combo_event = ttk.Combobox(newEnqWindow, values=["Freestyle", "Backstroke", "Breaststroke", "Butterfly", "Individual Medley",
+                                                "50m Freestyle", "100m Freestyle", "200m Freestyle", "400m Freestyle", "800m Freestyle", "1500m Freestyle",
                                                 "50m Backstroke", "100m Backstroke", "200m Backstroke",
                                                 "50m Breaststroke", "100m Breaststroke", "200m Breaststroke",
                                                 "50m Butterfly", "100m Butterfly", "200m Butterfly",
                                                 "100m Individual Medley", "200m Individual Medley", "400m Individual Medley"])
     btn_search = Button(newEnqWindow, text="Search")
-    tree_view = ttk.Treeview(newEnqWindow, columns=["Name", "Event", "Timing", "Meet"], displaycolumns=["Name", "Event", "Timing", "Meet"])
+    tree_view = ttk.Treeview(newEnqWindow, columns=["Name", "Event", "Timing", "Meet", "Status"], displaycolumns=["Name", "Event", "Timing", "Meet", "Status"])
 
     label_req.grid(row=1, column=2)
     label_name.grid(row=2, column=0)
@@ -358,14 +367,16 @@ def createEnqWindow():
     # TreeView Setting
     tree_view.column("#0", width=30)
     tree_view.heading("#0", text="#")
-    tree_view.column("#1", width=100)
+    tree_view.column("#1", width=170)
     tree_view.heading("#1", text="Name")
-    tree_view.column("#2", width=170)
+    tree_view.column("#2", width=120)
     tree_view.heading("#2", text="Event")
-    tree_view.column("#3", width=90)
+    tree_view.column("#3", width=80)
     tree_view.heading("#3", text="Timing")
     tree_view.column("#4", width=300)
     tree_view.heading("#4", text="Meet")
+    tree_view.column("#5", width=80)
+    tree_view.heading("#5", text="Status")
 
     # Search Function
     def enqSearch(event):
@@ -399,18 +410,26 @@ def createEnqWindow():
                             event = recDB_data[j]["event"]
                             timing = recDB_data[j]["time"]
                             meet = recDB_data[j]["meet"]
-                            tree_view.insert('', 'end', text=num, values=[rec_name, event, timing, meet], iid=str(num))
+                            status = recDB_data[j]["status"]
+                            tree_view.insert('', 'end', text=num, values=[rec_name, event, timing, meet, status], iid=str(num))
                         
                         # Find recordings in Record DB (with name)
                         for j in range(len(recDB_data)):
                             if recDB_data[j]["id"] == id:
                                 # If optional search
                                 if combo_event.get() != "":
-                                    if recDB_data[j]["event"] == combo_event.get():
-                                        insertTree(j)
-                                        num += 1
+                                    if combo_event.get() == "Freestyle" or combo_event.get() == "Backstroke" or combo_event.get() == "Breaststroke" or combo_event.get() == "Butterfly" or combo_event.get() == "Individual Medley":
+                                        if combo_event.get() in recDB_data[j]["event"]:
+                                            insertTree(j)
+                                            num += 1
+                                        else:
+                                            continue
                                     else:
-                                        continue
+                                        if recDB_data[j]["event"] == combo_event.get():
+                                            insertTree(j)
+                                            num += 1
+                                        else:
+                                            continue
                                 else:
                                     insertTree(j)
                                     num += 1
@@ -430,6 +449,7 @@ def createEnqWindow():
             showerror("Error", "You must input the name!")
 
     btn_search.bind("<1>", enqSearch)
+    entry_name.bind("<Return>", enqSearch)
 
 # Create Display Window
 def createDispWindow():
